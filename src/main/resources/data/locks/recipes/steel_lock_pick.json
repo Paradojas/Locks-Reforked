@@ -2,38 +2,24 @@
 	"type": "minecraft:crafting_shaped",
 	"pattern":
 	[
-<<<<<<< HEAD
-		" SS",
-		" S ",
-		"S  "
-=======
 		" S ",
 		"S S",
 		"NS "
->>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 	],
 	"key":
 	{
 		"S":
 		{
-<<<<<<< HEAD
-			"tag": "c:ingots/steel"
-=======
 			"tag": "c:iron_ingots"
 		},
 		"N":
 		{
 			"tag": "c:iron_blocks"
->>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":
 	{
-<<<<<<< HEAD
-		"item": "locks:steel_lock_pick",
-=======
 		"id": "locks:steel_lock_pick",
->>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		"count": 2
 	}
 }

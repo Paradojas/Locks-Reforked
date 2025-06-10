@@ -10,19 +10,11 @@
 	{
 		"G":
 		{
-<<<<<<< HEAD
-			"tag": "c:ingots/gold"
-		},
-		"L":
-		{
-			"item": "locks:iron_lock_mechanism"
-=======
 			"tag": "c:gold_ingots"
 		},
 		"L":
 		{
 			"item": "locks:steel_lock_mechanism"
->>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":

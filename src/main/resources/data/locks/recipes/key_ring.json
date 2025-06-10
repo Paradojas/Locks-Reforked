@@ -10,11 +10,7 @@
 	{
 		"I":
 		{
-<<<<<<< HEAD
-			"tag": "c:nuggets/iron"
-=======
 			"tag": "c:iron_nuggets"
->>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":
