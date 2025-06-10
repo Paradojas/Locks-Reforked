@@ -5,7 +5,7 @@
 	"name": "Locks",
 	"description": "Locks is a small, but unique Minecraft mod that introduces flexible and universal locks which can be dynamically attached to multiple blocks of any kind, including other mods, a fun lock picking mechanic as well as lots of other little, but useful tools and utilities.",
 	"authors": [
-		"Melonslise", "Kaleb Langley", "Yuqi154"
+		"Melonslise", "Kaleb Langley", "Yuqi154", "Parakoh"
 	],
 	"icon": "icon.png",
 	"accessWidener" : "locks.accesswidener",

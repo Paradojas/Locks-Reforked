@@ -31,14 +31,15 @@ public final class LocksItems {
             DIAMOND_LOCK = add("diamond_lock", () -> new LockItem(11, 10, 100, new Item.Properties())),
             KEY = add("key", () -> new KeyItem(new Item.Properties())),
             MASTER_KEY = add("master_key", () -> new MasterKeyItem(new Item.Properties())),
-            KEY_RING = add("key_ring", () -> new KeyRingItem(1, new Item.Properties())),
+            KEY_RING = add("key_ring", () -> new KeyRingItem(2, new Item.Properties())),
             WOOD_LOCK_PICK = add("wood_lock_pick", () -> new LockPickItem(0.2f, new Item.Properties())),
             IRON_LOCK_PICK = add("iron_lock_pick", () -> new LockPickItem(0.35f, new Item.Properties())),
             STEEL_LOCK_PICK = add("steel_lock_pick", () -> new LockPickItem(0.7f, new Item.Properties())),
             GOLD_LOCK_PICK = add("gold_lock_pick", () -> new LockPickItem(0.25f, new Item.Properties())),
             DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.85f, new Item.Properties()));
 
-    public static void register() {
+    public static void register()
+    {
     }
 
     public static Item add(String resourceLocation, Supplier<Item> itemSupplier) {

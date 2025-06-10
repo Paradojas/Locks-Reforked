@@ -10,11 +10,19 @@
 	{
 		"N":
 		{
+<<<<<<< HEAD
 			"tag": "c:nuggets/iron"
 		},
 		"I":
 		{
 			"tag": "c:ingots/iron"
+=======
+			"tag": "c:iron_nuggets"
+		},
+		"I":
+		{
+			"tag": "c:iron_ingots"
+>>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":

@@ -10,7 +10,11 @@
 	{
 		"D":
 		{
+<<<<<<< HEAD
 			"tag": "c:gems/diamond"
+=======
+			"tag": "c:diamonds"
+>>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":

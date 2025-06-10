@@ -10,6 +10,9 @@ import net.minecraftforge.fml.config.ModConfig.Type;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * MOD init and registration.
+ */
 public final class Locks implements ModInitializer
 {
 	public static final String ID = "locks";

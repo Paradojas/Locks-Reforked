@@ -10,7 +10,11 @@
 	{
 		"G":
 		{
+<<<<<<< HEAD
 			"tag": "c:ingots/gold"
+=======
+			"tag": "c:gold_ingots"
+>>>>>>> a1e8617 (1.0.4 (Bug fixes and implementation of key ring))
 		}
 	},
 	"result":
