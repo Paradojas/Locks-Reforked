@@ -19,6 +19,7 @@
     "RandomizableContainerBlockEntityMixin",
     "ServerWorldMixin",
     "WorldMixin",
+    "AnvilMenuMixin",
     "accessor.LootPoolAccessor",
     "accessor.LootTableAccessor",
     "addlock.StructurePieceMixin",

@@ -15,6 +15,7 @@
 	},
 	"result":
 	{
-		"item": "locks:spring"
+		"item": "locks:spring",
+		"count": 1
 	}
 }

@@ -3,6 +3,7 @@
 
 	"itemGroup.locks": "Locks",
 
+	"item.locks.integrated_circuit": "Integrated Circuit",
 	"item.locks.spring": "Spring",
 	"item.locks.wood_lock_mechanism": "Wood Lock Mechanism",
 	"item.locks.iron_lock_mechanism": "Iron Lock Mechanism",
@@ -12,6 +13,8 @@
 	"item.locks.steel_lock": "Steel Lock",
 	"item.locks.gold_lock": "Gold Plated Lock",
 	"item.locks.diamond_lock": "Diamond Plated Lock",
+	"item.locks.netherite_lock": "Netherite Plated Lock",
+	"item.locks.smart_netherite_lock": "Netherite Smart Lock",
 	"item.locks.wood_lock_pick": "Bobby Pin Lock Pick",
 	"item.locks.iron_lock_pick": "Iron Lock Pick",
 	"item.locks.steel_lock_pick": "Steel Lock Pick",

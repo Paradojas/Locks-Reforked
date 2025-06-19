@@ -19,6 +19,7 @@ public final class LocksItems {
     public static List<Item> items = new ArrayList<>();
 
     public static final Item
+            INTEGRATED_CIRCUIT = add("integrated_circuit", () -> new Item(new Item.Properties())),
             SPRING = add("spring", () -> new Item(new Item.Properties())),
             WOOD_LOCK_MECHANISM = add("wood_lock_mechanism", () -> new Item(new Item.Properties())),
             IRON_LOCK_MECHANISM = add("iron_lock_mechanism", () -> new Item(new Item.Properties())),
@@ -29,6 +30,8 @@ public final class LocksItems {
             STEEL_LOCK = add("steel_lock", () -> new LockItem(9, 12, 20, new Item.Properties())),
             GOLD_LOCK = add("gold_lock", () -> new LockItem(6, 22, 6, new Item.Properties())),
             DIAMOND_LOCK = add("diamond_lock", () -> new LockItem(11, 10, 100, new Item.Properties())),
+            NETHERITE_LOCK = add("netherite_lock", () -> new LockItem(15, 12, 100, new Item.Properties())),
+            NETHERITE_SMART_LOCK = add("smart_netherite_lock", () -> new LockItem(32, 12, 100, new Item.Properties())),
             KEY = add("key", () -> new KeyItem(new Item.Properties())),
             MASTER_KEY = add("master_key", () -> new MasterKeyItem(new Item.Properties())),
             KEY_RING = add("key_ring", () -> new KeyRingItem(2, new Item.Properties())),
