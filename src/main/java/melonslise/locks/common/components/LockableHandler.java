@@ -110,6 +110,7 @@ public class LockableHandler implements ILockableHandler {
         // Remove from world
         this.lockables.remove(id);
         lkb.deleteObserver(this);
+
         // Do client/server extras
         if(this.world.isClientSide)
             return true;
@@ -153,5 +154,10 @@ public class LockableHandler implements ILockableHandler {
             list.add(Lockable.toNbt(lkb));
         compoundTag.put("Lockables", list);
         compoundTag.putInt("LockablesSize", this.lockables.size());
+    }
+
+    public void sync()
+    {
+
     }
 }

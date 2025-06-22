@@ -30,8 +30,8 @@ public final class LocksItems {
             STEEL_LOCK = add("steel_lock", () -> new LockItem(9, 12, 20, new Item.Properties())),
             GOLD_LOCK = add("gold_lock", () -> new LockItem(6, 22, 6, new Item.Properties())),
             DIAMOND_LOCK = add("diamond_lock", () -> new LockItem(11, 10, 100, new Item.Properties())),
-            NETHERITE_LOCK = add("netherite_lock", () -> new LockItem(15, 12, 100, new Item.Properties())),
-            NETHERITE_SMART_LOCK = add("smart_netherite_lock", () -> new LockItem(32, 12, 100, new Item.Properties())),
+            NETHERITE_LOCK = add("netherite_lock", () -> new LockItem(15, 12, 100, new Item.Properties().fireResistant())),
+            NETHERITE_SMART_LOCK = add("smart_netherite_lock", () -> new SmartLockItem(12, new Item.Properties().fireResistant())),
             KEY = add("key", () -> new KeyItem(new Item.Properties())),
             MASTER_KEY = add("master_key", () -> new MasterKeyItem(new Item.Properties())),
             KEY_RING = add("key_ring", () -> new KeyRingItem(2, new Item.Properties())),
@@ -39,7 +39,8 @@ public final class LocksItems {
             IRON_LOCK_PICK = add("iron_lock_pick", () -> new LockPickItem(0.35f, new Item.Properties())),
             STEEL_LOCK_PICK = add("steel_lock_pick", () -> new LockPickItem(0.7f, new Item.Properties())),
             GOLD_LOCK_PICK = add("gold_lock_pick", () -> new LockPickItem(0.25f, new Item.Properties())),
-            DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.85f, new Item.Properties()));
+            DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.85f, new Item.Properties())),
+            NETHERITE_LOCK_PICK = add("netherite_lock_pick", () -> new LockPickItem(0.9f, new Item.Properties().fireResistant()));
 
     public static void register()
     {

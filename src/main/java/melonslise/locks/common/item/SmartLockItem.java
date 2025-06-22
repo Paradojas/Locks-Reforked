@@ -16,11 +16,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -32,25 +34,24 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import java.util.UUID;
 
 import java.util.List;
 
-public class LockItem extends LockingItem
+public class SmartLockItem extends LockingItem
 {
-	public final int length;
 	public final int enchantmentValue;
-	public final int resistance;
 
-	public LockItem(int length, int enchVal, int resist, Properties props)
+	public SmartLockItem(int enchVal, Properties props)
 	{
 		super(props);
-		this.length = length;
 		this.enchantmentValue = enchVal;
-		this.resistance = resist;
 	}
 
 	public static final String KEY_OPEN = "Open";
-	public static final String KEY_LENGTH = "Length";
+
+	public static final String OWNER = "OwnerUUID";
+	public static final String OWNER_NAME = "OwnerName";
 
 	public static boolean isOpen(ItemStack stack)
 	{
@@ -62,21 +63,6 @@ public class LockItem extends LockingItem
 		stack.getOrCreateTag().putBoolean(KEY_OPEN, open);
 	}
 
-	// WARNING: EXPECTS LOCKITEM STACK
-	public static byte getOrSetLength(ItemStack stack)
-	{
-		CompoundTag nbt = stack.getOrCreateTag();
-		if(!nbt.contains(KEY_LENGTH))
-			nbt.putByte(KEY_LENGTH, (byte) ((LockItem) stack.getItem()).length);
-		return nbt.getByte(KEY_LENGTH);
-	}
-
-	// WARNING: EXPECTS LOCKITEM STACK
-	public static int getResistance(ItemStack stack)
-	{
-		return ((LockItem) stack.getItem()).resistance;
-	}
-
 	@Override
 	public InteractionResult useOn(UseOnContext ctx)
 	{
@@ -86,6 +72,46 @@ public class LockItem extends LockingItem
 			return InteractionResult.PASS;
 		return LocksServerConfig.EASY_LOCK.get() ? this.easyLock(ctx) : this.freeLock(ctx);
 	}
+
+	private static boolean prevState = false;
+
+	public static UUID getOrSetOwner(ItemStack stack, Player player) {
+		CompoundTag tag = stack.getOrCreateTag();
+
+		if (!tag.contains(OWNER, Tag.TAG_INT_ARRAY) || !tag.contains(OWNER_NAME, Tag.TAG_STRING)) {
+			setOwner(stack, player);
+		}
+
+		return tag.getUUID(OWNER);
+	}
+
+	public static void setOwner(ItemStack stack, Player player) {
+		CompoundTag tag = stack.getOrCreateTag();
+
+		Locks.LOGGER.warn(tag.hasUUID(OWNER));
+		if (!tag.hasUUID(OWNER)) {
+			tag.putUUID(OWNER, player.getUUID());
+		}
+
+		if (!tag.contains(OWNER_NAME, Tag.TAG_STRING)) {
+			tag.putString(OWNER_NAME, player.getName().getString());
+		}
+	}
+
+	@Override
+	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected)
+	{
+		super.inventoryTick(stack, world, entity, slot, selected);
+		if(!world.isClientSide && entity instanceof Player player) getOrSetOwner(stack, player);
+	}
+
+	/*@Override
+	public void onCraftedBy(ItemStack stack, Level world, Player player) {
+		super.onCraftedBy(stack, world, player);
+		CompoundTag tag = stack.getOrCreateTag();
+		getOrSetOwner(stack, player);
+	}*/
+
 
 	public InteractionResult freeLock(UseOnContext ctx)
 	{
@@ -181,6 +207,15 @@ public class LockItem extends LockingItem
 	public void appendHoverText(ItemStack stack, Level world, List<Component> lines, TooltipFlag flag)
 	{
 		super.appendHoverText(stack, world, lines, flag);
-		lines.add(Component.translatable(Locks.ID + ".tooltip.length", ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(stack.hasTag() && stack.getTag().contains(KEY_LENGTH) ? stack.getTag().getByte(KEY_LENGTH) : this.length)).withStyle(ChatFormatting.DARK_GREEN));
+		String ownerName = "Unknown";
+		if (stack.hasTag() && stack.getTag().contains(OWNER_NAME, Tag.TAG_STRING)) {
+			ownerName = stack.getTag().getString(OWNER_NAME);
+			lines.add(Component.translatable(Locks.ID + ".tooltip.owner", ownerName).withStyle(ChatFormatting.DARK_GREEN));
+		}
+		/*if (stack.hasTag() && stack.getTag().contains(OWNER)) {
+			ownerName = stack.getTag().getUUID(OWNER).toString();
+			lines.add(Component.translatable(Locks.ID + ".tooltip.owner", ownerName).withStyle(ChatFormatting.DARK_GREEN));
+		}*/
+		//if(stack.hasTag() && stack.getTag().contains(OWNER_NAME)) lines.add(Component.translatable(Locks.ID + ".tooltip.owner", getOrSetOwner(stack, )).withStyle(ChatFormatting.DARK_GREEN));
 	}
 }

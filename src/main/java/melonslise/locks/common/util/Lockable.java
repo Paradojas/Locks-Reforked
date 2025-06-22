@@ -3,6 +3,7 @@ package melonslise.locks.common.util;
 import melonslise.locks.Locks;
 import melonslise.locks.common.init.LocksComponents;
 import melonslise.locks.common.item.LockItem;
+import melonslise.locks.common.item.SmartLockItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -126,6 +127,7 @@ public class Lockable extends Observable implements Observer
 		nbt.put(KEY_BB, Cuboid6i.toNbt(lkb.bb));
 		nbt.put(KEY_LOCK, Lock.toNbt(lkb.lock));
 
+
 		if (lkb.tr == null) {
 			Locks.LOGGER.warn("Transform is null for Lockable?");
 			lkb.tr = Transform.NORTH_UP;
@@ -135,6 +137,16 @@ public class Lockable extends Observable implements Observer
 		nbt.put(KEY_STACK, lkb.stack.save(new CompoundTag()));
 		nbt.putInt(KEY_ID, lkb.id);
 		return nbt;
+	}
+
+	/**
+	 * Returns true if the lock is a smart lock
+	 *
+	 * @return - Returns true if the lock is a smart lock
+	 */
+	public boolean isSmart()
+	{
+		return this.stack.getItem() instanceof SmartLockItem;
 	}
 
 

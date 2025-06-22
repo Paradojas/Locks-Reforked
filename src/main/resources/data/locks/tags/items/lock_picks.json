@@ -6,6 +6,7 @@
 		"locks:iron_lock_pick",
 		"locks:steel_lock_pick",
 		"locks:gold_lock_pick",
-		"locks:diamond_lock_pick"
+		"locks:diamond_lock_pick",
+		"locks:netherite_lock_pick"
 	]
 }

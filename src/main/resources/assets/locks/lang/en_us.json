@@ -20,6 +20,7 @@
 	"item.locks.steel_lock_pick": "Steel Lock Pick",
 	"item.locks.gold_lock_pick": "Gold Lock Pick",
 	"item.locks.diamond_lock_pick": "Diamond Lock Pick",
+	"item.locks.netherite_lock_pick": "Netherite Lock Pick",
 	"item.locks.key": "Key",
 	"item.locks.master_key": "Master Key",
 	"item.locks.key_blank": "Key Blank",
@@ -49,6 +50,7 @@
 	"locks.tooltip.id": "ID: %s",
 	"locks.tooltip.length":  "Length: %s",
 	"locks.tooltip.strength": "Strength: %s",
+	"locks.tooltip.owner": "Owner: %s",
 
 	"locks.status.locked": "This block is locked",
 	"locks.status.too_complex": "This lock is too complex for this lock pick"
