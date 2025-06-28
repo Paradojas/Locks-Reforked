@@ -45,10 +45,6 @@
 		"cardinal-components-world": ">=5.2.2",
 		"cardinal-components-chunk": ">=5.2.2"
 	},
-	"optional": [
-		"roughlyenoughitems",
-		"jei"
-	],
 	"suggests": {
 		"jei": ">=15.17.0.0",
 		"rei": ">=12.0.613"
