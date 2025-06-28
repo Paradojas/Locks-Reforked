@@ -1,4 +1,13 @@
 {
+	"fabric:load_conditions": [
+		{
+		"condition": "fabric:item_tags_populated",
+		"values": [
+			"c:steel_ingots",
+			"c:steel_nuggets"
+		]
+		}
+	],
 	"type": "minecraft:crafting_shaped",
 	"pattern":
 	[
@@ -14,11 +23,11 @@
 		},
 		"N":
 		{
-			"tag": "c:iron_ingots"
+			"tag": "c:steel_nuggets"
 		},
 		"I":
 		{
-			"item": "minecraft:iron_block"
+			"tag": "c:steel_ingots"
 		}
 	},
 	"result":

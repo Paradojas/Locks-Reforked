@@ -1,4 +1,12 @@
 {
+	"fabric:load_conditions": [
+		{
+		"condition": "fabric:item_tags_populated",
+		"values": [
+			"c:steel_ingots"
+		]
+		}
+	],
 	"type": "minecraft:crafting_shaped",
 	"pattern":
 	[
@@ -10,7 +18,7 @@
 	{
 		"S":
 		{
-			"tag": "c:ingots/steel"
+			"tag": "c:steel_ingots"
 		},
 		"L":
 		{

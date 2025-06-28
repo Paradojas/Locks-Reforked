@@ -1,25 +1,29 @@
 {
+	"fabric:load_conditions": [
+		{
+		"condition": "fabric:item_tags_populated",
+		"values": [
+			"c:steel_ingots"
+		]
+		}
+	],
 	"type": "minecraft:crafting_shaped",
 	"pattern":
 	[
+		" SS",
 		" S ",
-		"S S",
-		"NS "
+		"S  "
 	],
 	"key":
 	{
 		"S":
 		{
-			"tag": "c:iron_ingots"
-		},
-		"N":
-		{
-			"tag": "c:iron_blocks"
+			"tag": "c:steel_ingots"
 		}
 	},
 	"result":
 	{
-		"id": "locks:steel_lock_pick",
+		"item": "locks:steel_lock_pick",
 		"count": 2
 	}
 }
