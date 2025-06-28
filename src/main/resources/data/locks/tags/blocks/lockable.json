@@ -1,0 +1,14 @@
+{
+	"replace": false,
+	"values":
+	[
+		"#c:chests",
+		"#c:wooden_barrels",
+        "#minecraft:fence_gates",
+        "#c:shulker_boxes",
+        "#minecraft:shulker_boxes",
+        "#minecraft:trapdoors",
+        "#minecraft:doors",
+        "minecraft:hopper"
+	]
+}
