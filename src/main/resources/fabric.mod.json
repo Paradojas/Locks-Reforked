@@ -13,8 +13,8 @@
 	"icon": "icon.png",
 	"accessWidener" : "locks.accesswidener",
 	"contact": {
-		"homepage": "https://www.curseforge.com/minecraft/mc-mods/locks-unoffical",
-		"sources": "https://github.com/MCTeamPotato/Locks-Unoffical"
+		"homepage": "https://modrinth.com/mod/locks-reforked",
+		"sources": "https://github.com/Paradojas/Locks-Reforked"
 	},
 	"license": "CC-BY-NC-3.0",
 	"environment": "*",
