@@ -1,4 +1,4 @@
-package melonslise.locks.mixin.compact;
+package melonslise.locks.mixin.compat.lootr;
 
 import melonslise.locks.Locks;
 import net.minecraft.core.BlockPos;

@@ -7,6 +7,9 @@
 	"authors": [
 		"Melonslise", "Kaleb Langley", "Yuqi154", "Parakoh"
 	],
+	"contributors": [
+		"VanderCat"
+	],
 	"icon": "icon.png",
 	"accessWidener" : "locks.accesswidener",
 	"contact": {
@@ -27,8 +30,8 @@
 		"rei_client": ["melonslise.locks.compat.rei.LocksReiPlugin"]
 	},
 	"mixins": [
-      "locks.mixins.json",
-		"locks.mixins.compact.json"
+        "locks.mixins.json",
+		"locks.mixins.compat.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
