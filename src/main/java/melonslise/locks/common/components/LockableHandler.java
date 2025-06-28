@@ -18,6 +18,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
 
 //Shit is required to save the world file.
 import net.minecraft.nbt.Tag;
@@ -55,7 +56,15 @@ public class LockableHandler implements ILockableHandler {
     @Override
     public Int2ObjectMap<Lockable> getInChunk(BlockPos pos)
     {
-        return this.world.hasChunkAt(pos) ? LocksComponents.LOCKABLE_STORAGE.get(this.world.getChunkAt(pos)).get(): new Int2ObjectLinkedOpenHashMap<Lockable>();
+        if (this.world.hasChunkAt(pos)) { //this thing is deprecated but using a hasChunk(pos.getX(), pos.getY()) breaking locking, what gives?
+            LevelChunk chunk = this.world.getChunkAt(pos);
+            if (chunk instanceof EmptyLevelChunk) {
+                // component guarantee that EmptyChunk will have NO component
+                return new Int2ObjectLinkedOpenHashMap<Lockable>();
+            }
+            return LocksComponents.LOCKABLE_STORAGE.get(chunk).get();
+        }
+        return new Int2ObjectLinkedOpenHashMap<Lockable>();
     }
 
     @Override
