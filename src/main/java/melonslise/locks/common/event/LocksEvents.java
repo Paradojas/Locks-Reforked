@@ -47,34 +47,78 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import java.util.Arrays;
 import java.util.Optional;
 
-
 public final class LocksEvents
 {
 	public static final Component LOCKED_MESSAGE = Component.translatable(Locks.ID + ".status.locked");
 
 	private LocksEvents() {}
 
-
-
 	public static void onLootTableLoad(ResourceManager resourceManager, LootDataManager lootManager, ResourceLocation id, LootTable.Builder tableBuilder, LootTableSource source)
 	{
 		// Only modify if it was a vanilla chest loot table
-
-        if (!id.getNamespace().equals("minecraft") || !id.getPath().startsWith("chests"))
+		if (!id.getNamespace().equals("minecraft") || !id.getPath().startsWith("chests"))
 			return;
 		// And only if there is a corresponding inject table...
 		ResourceLocation injectLoc = new ResourceLocation(Locks.ID, "loot_tables/inject/" + id.getPath() + ".json");
 		if (LocksUtil.resourceManager.getResource(injectLoc).isEmpty())
 			return;
 		// todo (kota): bring back
-
 	}
-
 
 	public static InteractionResult onRightClick(Player player, Level world, InteractionHand hand, BlockHitResult result)
 	{
-		//Gets the lock being interacted with and the handler
 		BlockPos pos = result.getBlockPos();
+
+		// NUEVO: Verificación temprana para puertas bloqueadas
+		if (LocksUtil.locked(world, pos)) {
+			BlockState state = world.getBlockState(pos);
+			// Si es una puerta y está bloqueada, maneja la interacción aquí directamente
+			if (state.getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
+				ILockableHandler handler = LocksComponents.LOCKABLE_HANDLER.get(world);
+				Lockable[] intersect = handler.getInChunk(pos).values().stream()
+						.filter(lkb -> lkb.bb.intersects(pos))
+						.toArray(Lockable[]::new);
+
+				if (intersect.length > 0) {
+					if(hand != InteractionHand.MAIN_HAND) return InteractionResult.FAIL;
+
+					Optional<Lockable> locked = Arrays.stream(intersect)
+							.filter(LocksPredicates.LOCKED)
+							.findFirst();
+
+					if (locked.isPresent()) {
+						Lockable lkb = locked.get();
+						ItemStack stack = player.getItemInHand(hand);
+
+						// Maneja el unlock/shake aquí
+						if (!canUnlock(lkb, stack, player)) {
+							lkb.swing(20);
+							world.playSound(player, pos, LocksSoundEvents.LOCK_RATTLE, SoundSource.BLOCKS, 1f, 1f);
+							player.swing(InteractionHand.MAIN_HAND);
+							return InteractionResult.FAIL; // Importante: FAIL evita que la puerta se abra
+						}
+
+						// Si puede desbloquear y está agachado
+						if (player.isShiftKeyDown() && hasMatchingKey(lkb, stack, player)) {
+							lkb.lock.setLocked(!lkb.lock.isLocked());
+							world.playSound(player, pos, LocksSoundEvents.LOCK_OPEN, SoundSource.BLOCKS, 1f, 1f);
+
+							if (!world.isClientSide) {
+								((ServerLevel) world).getServer().execute(() -> {
+									LocksComponents.LOCKABLE_HANDLER.sync(world);
+									(world.getChunk(pos)).setUnsaved(true);
+								});
+							}
+							return InteractionResult.SUCCESS;
+						}
+
+						return InteractionResult.FAIL; // Evita que la puerta se abra
+					}
+				}
+			}
+		}
+
+		//Gets the lock being interacted with and the handler
 		ILockableHandler handler = LocksComponents.LOCKABLE_HANDLER.get(world);
 		Lockable[] intersect = handler.getInChunk(pos).values().stream()
 				.filter(lkb -> lkb.bb.intersects(pos))
@@ -130,8 +174,6 @@ public final class LocksEvents
 
 			// Avoids rendering when it is opened with a key while standing
 			if(!lkb.isSmart() && player.isShiftKeyDown() && hasMatchingKey(lkb, stack, player)) { return InteractionResult.PASS; }
-
-
 
 			if(canUnlock(lkb,stack,player) && !hasMatchingKey(lkb, stack, player)) {
 				player.openMenu(new LockPickingContainer.Provider(hand, lkb));
@@ -192,7 +234,6 @@ public final class LocksEvents
 		return false;
 	}
 
-
 	public static boolean canBreakLockable(Level world,Player player, BlockPos pos)
 	{
 		return (LocksServerConfig.PROTECT_LOCKABLES.get() &&
@@ -202,7 +243,7 @@ public final class LocksEvents
 
 	public static boolean onBlockBreaking(Level world, Player player, BlockPos pos, BlockState state,@Nullable BlockEntity entity)
 	{
-        return !canBreakLockable(world,player, pos);
+		return !canBreakLockable(world,player, pos);
 	}
 
 	public static void onBlockBreak(Level world, Player player, BlockPos pos, BlockState state,@Nullable BlockEntity entity)
@@ -219,5 +260,4 @@ public final class LocksEvents
 		PlayerBlockBreakEvents.AFTER.register(LocksEvents::onBlockBreak);
 		UseBlockCallback.EVENT.register(LocksEvents::onRightClick);
 	}
-
 }
