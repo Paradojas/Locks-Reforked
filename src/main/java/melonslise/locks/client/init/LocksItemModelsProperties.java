@@ -30,6 +30,7 @@ public final class LocksItemModelsProperties
 		ResourceLocation id = new ResourceLocation(Locks.ID, "open");
 		ClampedItemPropertyFunction getter = (stack, world, entity, speed) -> LockItem.isOpen(stack) ? 1f : 0f;
 		ItemProperties.register(LocksItems.WOOD_LOCK, id, getter);
+		ItemProperties.register(LocksItems.COPPER_LOCK, id, getter);
 		ItemProperties.register(LocksItems.IRON_LOCK, id, getter);
 		ItemProperties.register(LocksItems.STEEL_LOCK, id, getter);
 		ItemProperties.register(LocksItems.GOLD_LOCK, id, getter);
