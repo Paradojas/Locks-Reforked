@@ -198,19 +198,30 @@ public final class LocksUtil {
                                        ResourceLocation lootTableId) {
         BlockState state = levelAccessor.getBlockState(blockPos);
         Block block = state.getBlock();
-        if (!LocksConfig.matchString(block)) return null;
+        if (!LocksConfig.matchString(block))
+        {
+            Locks.LOGGER.info("[LocksUtil] Block '{}' was not in the config list", block);
+            return null;
+        }
 
+        Locks.LOGGER.info("[LocksUtil] Generating geo");
         Object[] geo = resolveGeometry(levelAccessor, blockPos);
         if (geo == null) return null;
         BlockPos  pos1 = (BlockPos)  geo[0];
         Direction dir  = (Direction) geo[1];
 
+        Locks.LOGGER.info("[LocksUtil] Generating stack");
         ItemStack stack = LocksConfig.rollLock(randomSource, lootTableId);
-        if (stack == null) return null;
+        if (stack == null)
+        {
+            Locks.LOGGER.warn("[LocksUtil] OOPS, stack was null!");
+            return null;
+        }
 
         Cuboid6i  bb   = new Cuboid6i(blockPos, pos1);
         Lock      lock = Lock.from(stack);
         Transform tr   = Transform.fromDirection(dir, dir);
+        Locks.LOGGER.info("[LocksUtil] Generating lockable");
         return new Lockable(bb, lock, tr, stack, level);
     }
 
@@ -233,12 +244,14 @@ public final class LocksUtil {
         Direction dir  = (Direction) geo[1];
 
         // Pass null — rollLock will use "default" entry, then global fallback
+        Locks.LOGGER.info("[LocksUtil] Generating stack");
         ItemStack stack = LocksConfig.rollLock(randomSource, null);
         if (stack == null) return null;
 
         Cuboid6i  bb   = new Cuboid6i(blockPos, pos1);
         Lock      lock = Lock.from(stack);
         Transform tr   = Transform.fromDirection(dir, dir);
+        Locks.LOGGER.info("[LocksUtil] Returning lockable");
         return new Lockable(bb, lock, tr, stack, level);
     }
 

@@ -26,8 +26,13 @@ public class BlockEntityMixin {
     @Inject(method = "load(Lnet/minecraft/nbt/CompoundTag;)V", at = @At("HEAD"))
     private void onLoad(CompoundTag nbt, CallbackInfo ci) {
         if (!LocksGenContext.IS_PLACING_STRUCTURE.get()) return;
-        if (!((Object)this instanceof RandomizableContainerBlockEntity)) return;
+        if (!((Object)this instanceof RandomizableContainerBlockEntity))
+        {
+            Locks.LOGGER.info("[BEMixin] Attempted loading a RandomizableContainerBlockEntity");
+            return;
+        }
         try {
+            Locks.LOGGER.info("[BEMixin] Attempted loading internal");
             onLoadInternal(nbt);
         } catch (Exception e) {
             Locks.LOGGER.error("[BEMixin] Exception during lock generation at {}: {}",
@@ -36,6 +41,13 @@ public class BlockEntityMixin {
     }
 
     private void onLoadInternal(CompoundTag nbt) {
+        Locks.LOGGER.info("[BEMixin] onLoadInternal pos={} hasTag={} block={}",
+                ((BlockEntity)(Object)this).getBlockPos(),
+                nbt.contains("LootTable"),
+                LocksGenContext.CURRENT_LEVEL_ACCESSOR.get() != null ?
+                        LocksGenContext.CURRENT_LEVEL_ACCESSOR.get()
+                                .getBlockState(((BlockEntity)(Object)this).getBlockPos()).getBlock() : "no accessor");
+
         if (!nbt.contains("LootTable")) return;
 
         BlockEntity self = (BlockEntity)(Object)this;
@@ -62,6 +74,7 @@ public class BlockEntityMixin {
             if (((ILockableProvider) chunk).getLockables().stream()
                     .anyMatch(lkb -> lkb.bb.intersects(pos))) return;
         } catch (Exception ignored) {
+            Locks.LOGGER.warn("[BEMixin] DEUP FAILED");
             // Dedup failed — proceed rather than skip
         }
 
@@ -69,6 +82,7 @@ public class BlockEntityMixin {
         // the hasChunk() guard in lockCheck. The BE was just loaded so its chunk
         // IS accessible via levelAccessor.getChunk() even if hasChunk() returns false
         // (which happens for village chests in adjacent chunks of the WorldGenRegion).
+        Locks.LOGGER.info("[BEMixin] Beggining lockWhenGen");
         Lockable lkb = LocksUtil.lockWhenGen(levelAccessor, serverLevel, pos,
                 RandomSource.create(), lootTableId);
         if (lkb == null) return;

@@ -73,7 +73,7 @@ public final class LocksConfig {
         private int weightTotal = 0;
 
         LootTableEntry(List<?> lockList, double genChance, double enchChance) {
-            this.genChance  = genChance;
+            this.genChance  = 1f; //genChance;
             this.enchChance = enchChance;
             this.rawLocks   = new ArrayList<>();
 
@@ -124,7 +124,13 @@ public final class LocksConfig {
         }
 
         ItemStack roll(RandomSource rng) {
-            if (!LocksUtil.chance(rng, genChance)) return null;
+            if (!LocksUtil.chance(rng, genChance)) {
+                Locks.LOGGER.info("[LootTableEntry] genChance roll FAILED (chance={})", genChance);
+                return null;
+            }
+            resolveIfNeeded();
+            Locks.LOGGER.info(getInfo());//"[LootTableEntry] weightTotal={} locks={}", weightTotal, weightedLocks);
+
             resolveIfNeeded();
             if (weightTotal == 0 || weightedLocks.isEmpty()) return null;
 
@@ -542,9 +548,21 @@ public final class LocksConfig {
 
         LootTableEntry entry = null;
         if (lootTableId != null) entry = lootTableEntries.get(lootTableId.toString());
-        if (entry == null)       entry = lootTableEntries.get("default");
-        if (entry == null)       return null;
+        if (entry == null)
+        {
+            Locks.LOGGER.warn("[LocksConfig] Unable to roll for {}, now attempting default.", lootTableId.toString());
+            entry = lootTableEntries.get("default");
+        }
+        if (entry == null)
+        {
+            Locks.LOGGER.warn("[LocksConfig] Unable to roll for default as well. returning null???");
+            return null;
+        }
 
+        Locks.LOGGER.info("[LocksConfig] rollLock id='{}' entry={} genChance={} weightTotal={}",
+                lootTableId, entry != null ? "found" : "null(using default)",
+                entry != null ? entry.genChance : -1,
+                entry != null ? entry.weightTotal : -1);
         return entry.roll(rng);
     }
 

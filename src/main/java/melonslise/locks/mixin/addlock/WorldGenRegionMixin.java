@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(WorldGenRegion.class)
 public class WorldGenRegionMixin {
-    /*@Shadow
+   /* @Shadow
     @Final
     private ServerLevel level;
 
@@ -26,6 +26,6 @@ public class WorldGenRegionMixin {
         ServerLevel level = this.level;
         RandomSource randomSource = RandomSource.create();
         ChunkAccess chunkAccess = ((WorldGenRegion)(Object)this).getChunk(blockPos);
-        LocksUtil.lockChunk((LevelAccessor) this, level, blockPos, randomSource, chunkAccess);
+        LocksUtil.lockChunk((LevelAccessor) this, level, blockPos, randomSource, chunkAccess );
     }*/
 }
