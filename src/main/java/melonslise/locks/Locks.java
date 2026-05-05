@@ -36,5 +36,6 @@ public final class Locks implements ModInitializer
 		LocksFeatures.register();
 		ForgeConfigRegistry.INSTANCE.register(ID, Type.COMMON, LocksConfig.SPEC);
 		ForgeConfigRegistry.INSTANCE.register(ID, Type.SERVER, LocksServerConfig.SPEC);
+		LocksConfig.init();
 	}
 }

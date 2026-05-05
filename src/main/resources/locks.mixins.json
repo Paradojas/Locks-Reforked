@@ -23,9 +23,12 @@
     "AnvilMenuMixin",
     "accessor.LootPoolAccessor",
     "accessor.LootTableAccessor",
+    "accessor.RandomizableContainerAccessor",
     "addlock.StructurePieceMixin",
     "addlock.StructureTemplateMixin",
-    "addlock.WorldGenRegionMixin"
+    "addlock.WorldGenRegionMixin",
+    "addlock.TemplateStructurePieceMixin"
+
   ],
   "client": [
     "ChunkCacheMixin",

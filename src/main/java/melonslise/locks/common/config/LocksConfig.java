@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.google.common.collect.Lists;
 import melonslise.locks.Locks;
+import melonslise.locks.common.util.ConfigString;
 import melonslise.locks.common.util.LocksUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -12,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -55,6 +57,8 @@ public final class LocksConfig {
 
     public static Pattern[] lockableGenBlocks;
 
+    private static List<Enchantment> lockEnchantments = null;
+
     // Per-loot-table entries loaded from locks-generation.toml.
     // Items are resolved lazily on first roll() call, not at load time,
     // to avoid reading the item registry before it is fully populated.
@@ -73,7 +77,7 @@ public final class LocksConfig {
         private int weightTotal = 0;
 
         LootTableEntry(List<?> lockList, double genChance, double enchChance) {
-            this.genChance  = 1f; //genChance;
+            this.genChance  = genChance;
             this.enchChance = enchChance;
             this.rawLocks   = new ArrayList<>();
 
@@ -91,7 +95,8 @@ public final class LocksConfig {
         }
 
         // Resolve item registry lookups deferred to first use,
-        // by which point all items are guaranteed to be registered.
+         // by which point all items are guaranteed to be registered.
+        // synchronized might be needed to avoid future bugs....
         private void resolveIfNeeded() {
             if (weightedLocks != null) return;
             weightedLocks = new TreeMap<>();
@@ -100,7 +105,7 @@ public final class LocksConfig {
                 Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(entry[0]));
                 // Skip air/missing items
                 if (item == net.minecraft.world.item.Items.AIR) {
-                    Locks.LOGGER.warn("[LocksConfig] Item '{}' not found in registry, skipping.", entry[0]);
+                    //Locks.LOGGER.warn("[LocksConfig] Item '{}' not found in registry, skipping.", entry[0]);
                     continue;
                 }
                 int weight = Integer.parseInt(entry[1]);
@@ -108,9 +113,9 @@ public final class LocksConfig {
                 weightedLocks.put(total, item);
             }
             weightTotal = total;
-            if (weightTotal == 0) {
+            /*if (weightTotal == 0) {
                 Locks.LOGGER.warn("[LocksConfig] LootTableEntry resolved with no valid items!");
-            }
+            }*/
         }
 
         boolean isValid() {
@@ -124,12 +129,13 @@ public final class LocksConfig {
         }
 
         ItemStack roll(RandomSource rng) {
-            if (!LocksUtil.chance(rng, genChance)) {
-                Locks.LOGGER.info("[LootTableEntry] genChance roll FAILED (chance={})", genChance);
+            if (!LocksUtil.chance(rng, genChance))
+            {
+                //Locks.LOGGER.info("[LootTableEntry] rng said nono Lock. Not generating lock. (chance={})", genChance);
                 return null;
             }
             resolveIfNeeded();
-            Locks.LOGGER.info(getInfo());//"[LootTableEntry] weightTotal={} locks={}", weightTotal, weightedLocks);
+            //Locks.LOGGER.info(getInfo());//"[LootTableEntry] weightTotal={} locks={}", weightTotal, weightedLocks);
 
             resolveIfNeeded();
             if (weightTotal == 0 || weightedLocks.isEmpty()) return null;
@@ -137,8 +143,18 @@ public final class LocksConfig {
             Map.Entry<Integer, Item> found = weightedLocks.ceilingEntry(rng.nextInt(weightTotal) + 1);
             if (found == null) return null; // safety guard
             ItemStack stack = new ItemStack(found.getValue());
-            return LocksUtil.chance(rng, enchChance)
+
+            /*Locks.LOGGER.info("[LootTableEntry] enchChance (chance={})", enchChance);
+            ItemStack result = enchantLock(stack, rng); //EnchantmentHelper.enchantItem(rng, stack, 5 + rng.nextInt(30), true);
+            ItemStack result = LocksUtil.chance(rng, enchChance)
                     ? EnchantmentHelper.enchantItem(rng, stack, 5 + rng.nextInt(30), false)
+                    : stack;
+            Locks.LOGGER.info("[roll] stack before enchant: {} NBT={}, isEnchanted={}", stack, stack.getTag(), stack.isEnchanted());
+            Locks.LOGGER.info("[roll] result after enchant: {} NBT={}, isEnchanted={}", result, result.getTag(), result.isEnchanted());
+            Locks.LOGGER.info("[roll] enchantmentValue={}", stack.getItem().getEnchantmentValue());
+            return result;*/
+            return LocksUtil.chance(rng, enchChance)
+                    ? enchantLock(stack, rng)
                     : stack;
         }
 
@@ -156,24 +172,52 @@ public final class LocksConfig {
     private LocksConfig() {}
 
     public static synchronized void init() {
+        Locks.LOGGER.info("[LocksConfig] init() called on thread: {}", Thread.currentThread().getName());
+        /*/Locks.LOGGER.info("[LocksConfig] SHOCKING in registry: {}",
+                BuiltInRegistries.ENCHANTMENT.containsKey(new ResourceLocation("locks:shocking")));*/
+        for (Enchantment e : BuiltInRegistries.ENCHANTMENT) {
+            if (e.canEnchant(new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation("locks:wood_lock"))))) {
+                Locks.LOGGER.info("[LocksConfig] Compatible enchantment found: {}",
+                        BuiltInRegistries.ENCHANTMENT.getKey(e));
+            }
+        }
+
+        buildEnchantmentList();
         Locks.LOGGER.info("[LocksConfig] init() called");
         lockableGenBlocks = GEN_LOCKABLE_BLOCKS.get().stream()
                 .map(Pattern::compile).toArray(Pattern[]::new);
         loadLootTableConfig();
     }
 
+    public static List<Enchantment> getLockEnchantments() {
+        return lockEnchantments != null ? lockEnchantments : List.of();
+    }
+
+    private static void buildEnchantmentList() {
+        ItemStack probe = new ItemStack(
+                BuiltInRegistries.ITEM.get(new ResourceLocation("locks:wood_lock")));
+        lockEnchantments = new ArrayList<>();
+        for (Enchantment e : BuiltInRegistries.ENCHANTMENT) {
+            if (e.canEnchant(probe)) {
+                lockEnchantments.add(e);
+                Locks.LOGGER.info("[LocksConfig] Added to lock enchantment pool: {}",
+                        BuiltInRegistries.ENCHANTMENT.getKey(e));
+            }
+        }
+    }
+
     // ── locks-generation.toml ─────────────────────────────────────────────────
 
     private static final String GEN_CONFIG_FILE = "locks-generation.toml";
 
-    private static void loadLootTableConfig() {
+    private static void  loadLootTableConfig() {
         Path configDir = FabricLoader.getInstance().getConfigDir();
         Path file = configDir.resolve(GEN_CONFIG_FILE);
 
-        Locks.LOGGER.info("[LocksConfig] Looking for: {}", file.toAbsolutePath());
+        //Locks.LOGGER.info("[LocksConfig] Looking for: {}", file.toAbsolutePath());
 
         if (!Files.exists(file)) {
-            Locks.LOGGER.info("[LocksConfig] Not found, writing defaults...");
+            //Locks.LOGGER.info("[LocksConfig] Not found, writing defaults...");
             writeDefaultLootTableConfig(file);
         }
 
@@ -224,303 +268,9 @@ public final class LocksConfig {
             Locks.LOGGER.error("[LocksConfig] Could not create config dir: {}", e.getMessage());
             return;
         }
-        String content =
-                """
-                # Locks \u2013 Per Loot Table Lock Generation Config (locks-generation.toml)
-                # =====================================================================
-                #
-                # HOW TO ADD AN ENTRY
-                # -------------------
-                # [lootTable."modId:path/to/loot_table"]
-                # locks      = [{ lockType = "material", weight = N }, ...]
-                # genChance  = 0.0 ~ 1.0   (chance a lock spawns on this chest type)
-                # enchChance = 0.0 ~ 1.0   (chance the lock is enchanted)
-                #
-                # "default" matches any chest whose loot table is not explicitly listed.
-                # If a chest has no loot table at all, it also falls back to "default".
-                #
-                # lockType short names: wood, copper, gold, iron, steel, diamond
-                #   (expands to locks:wood_lock etc.)
-                # Full item ids also work: e.g. "mymod:my_custom_lock"
-                #
-                # weight: positive integer - higher = more likely to be chosen.
-                
-                [lootTable."default"]
-                locks = [
-                    { lockType = "wood",    weight = 6 },
-                    { lockType = "copper",  weight = 5 },
-                    { lockType = "gold",    weight = 4 },
-                    { lockType = "iron",    weight = 3 },
-                    { lockType = "steel",   weight = 2 },
-                    { lockType = "diamond", weight = 1 }
-                ]
-                genChance  = 0.85
-                enchChance = 0.40
-                
-                [lootTable."minecraft:chests/simple_dungeon"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 5 },
-                    { lockType = "gold",   weight = 4 }
-                ]
-                genChance  = 0.40
-                enchChance = 0.10
-                
-                [lootTable."minecraft:chests/abandoned_mineshaft"]
-                locks = [
-                    { lockType = "wood",   weight = 5 },
-                    { lockType = "copper", weight = 4 },
-                    { lockType = "iron",   weight = 2 }
-                ]
-                genChance  = 0.50
-                enchChance = 0.15
-                
-                [lootTable."minecraft:chests/desert_pyramid"]
-                locks = [
-                    { lockType = "copper", weight = 5 },
-                    { lockType = "gold",   weight = 6 },
-                    { lockType = "iron",   weight = 3 }
-                ]
-                genChance  = 0.70
-                enchChance = 0.25
-                
-                [lootTable."minecraft:chests/jungle_temple"]
-                locks = [
-                    { lockType = "wood",   weight = 4 },
-                    { lockType = "copper", weight = 5 },
-                    { lockType = "gold",   weight = 4 }
-                ]
-                genChance  = 0.65
-                enchChance = 0.20
-                
-                [lootTable."minecraft:chests/pillager_outpost"]
-                locks = [
-                    { lockType = "copper", weight = 4 },
-                    { lockType = "iron",   weight = 5 },
-                    { lockType = "steel",  weight = 3 }
-                ]
-                genChance  = 0.75
-                enchChance = 0.25
-                
-                [lootTable."minecraft:chests/woodland_mansion"]
-                locks = [
-                    { lockType = "iron",    weight = 5 },
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 2 }
-                ]
-                genChance  = 0.85
-                enchChance = 0.40
-                
-                [lootTable."minecraft:chests/shipwreck_treasure"]
-                locks = [
-                    { lockType = "copper", weight = 4 },
-                    { lockType = "gold",   weight = 5 },
-                    { lockType = "iron",   weight = 3 }
-                ]
-                genChance  = 0.75
-                enchChance = 0.30
-                
-                [lootTable."minecraft:chests/nether_bridge"]
-                locks = [
-                    { lockType = "gold",  weight = 5 },
-                    { lockType = "iron",  weight = 4 },
-                    { lockType = "steel", weight = 2 }
-                ]
-                genChance  = 0.75
-                enchChance = 0.35
-                
-                [lootTable."minecraft:chests/bastion_treasure"]
-                locks = [
-                    { lockType = "gold",    weight = 4 },
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 3 }
-                ]
-                genChance  = 0.90
-                enchChance = 0.55
-                
-                [lootTable."minecraft:chests/bastion_other"]
-                locks = [
-                    { lockType = "gold",  weight = 5 },
-                    { lockType = "iron",  weight = 4 },
-                    { lockType = "steel", weight = 2 }
-                ]
-                genChance  = 0.70
-                enchChance = 0.30
-                
-                [lootTable."minecraft:chests/end_city_treasure"]
-                locks = [
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 5 }
-                ]
-                genChance  = 0.95
-                enchChance = 0.65
-                
-                [lootTable."minecraft:chests/stronghold_corridor"]
-                locks = [
-                    { lockType = "iron",    weight = 5 },
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 1 }
-                ]
-                genChance  = 0.80
-                enchChance = 0.40
-                
-                [lootTable."minecraft:chests/stronghold_library"]
-                locks = [
-                    { lockType = "iron",    weight = 4 },
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 3 }
-                ]
-                genChance  = 0.90
-                enchChance = 0.55
-                
-                [lootTable."minecraft:chests/ancient_city"]
-                locks = [
-                    { lockType = "steel",   weight = 5 },
-                    { lockType = "diamond", weight = 4 }
-                ]
-                genChance  = 0.95
-                enchChance = 0.60
-                
-                [lootTable."minecraft:chests/buried_treasure"]
-                locks = [
-                    { lockType = "gold",    weight = 5 },
-                    { lockType = "steel",   weight = 4 },
-                    { lockType = "diamond", weight = 3 }
-                ]
-                genChance  = 0.90
-                enchChance = 0.50
-                
-                [lootTable."minecraft:chests/ruined_portal"]
-                locks = [
-                    { lockType = "gold",  weight = 6 },
-                    { lockType = "iron",  weight = 3 },
-                    { lockType = "steel", weight = 2 }
-                ]
-                genChance  = 0.65
-                enchChance = 0.30
-                
-                [lootTable."minecraft:chests/ancient_city_ice_box"]
-                locks = [
-                    { lockType = "iron",  weight = 4 },
-                    { lockType = "steel", weight = 3 }
-                ]
-                genChance  = 0.70
-                enchChance = 0.35
-                
-                [lootTable."minecraft:chests/village/village_plains_house"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.30
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_desert_house"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.30
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_savanna_house"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.30
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_snowy_house"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.30
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_taiga_house"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.30
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_weaponsmith"]
-                locks = [
-                    { lockType = "iron",  weight = 5 },
-                    { lockType = "steel", weight = 4 }
-                ]
-                genChance  = 0.70
-                enchChance = 0.20
-                
-                [lootTable."minecraft:chests/village/village_toolsmith"]
-                locks = [
-                    { lockType = "copper", weight = 5 },
-                    { lockType = "iron",   weight = 4 }
-                ]
-                genChance  = 0.60
-                enchChance = 0.15
-                
-                [lootTable."minecraft:chests/village/village_armorer"]
-                locks = [
-                    { lockType = "iron",  weight = 5 },
-                    { lockType = "steel", weight = 3 }
-                ]
-                genChance  = 0.65
-                enchChance = 0.20
-                
-                [lootTable."minecraft:chests/village/village_cartographer"]
-                locks = [
-                    { lockType = "copper", weight = 5 },
-                    { lockType = "gold",   weight = 3 }
-                ]
-                genChance  = 0.50
-                enchChance = 0.10
-                
-                [lootTable."minecraft:chests/village/village_mason"]
-                locks = [
-                    { lockType = "wood",   weight = 5 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.35
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_shepherd"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 2 }
-                ]
-                genChance  = 0.25
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_butcher"]
-                locks = [
-                    { lockType = "wood",   weight = 5 },
-                    { lockType = "copper", weight = 3 }
-                ]
-                genChance  = 0.25
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_tannery"]
-                locks = [
-                    { lockType = "wood",   weight = 6 },
-                    { lockType = "copper", weight = 2 }
-                ]
-                genChance  = 0.25
-                enchChance = 0.05
-                
-                [lootTable."minecraft:chests/village/village_temple"]
-                locks = [
-                    { lockType = "copper", weight = 4 },
-                    { lockType = "gold",   weight = 5 }
-                ]
-                genChance  = 0.55
-                enchChance = 0.20
-                """;
+
         try {
-            Files.writeString(path, content);
+            Files.writeString(path, ConfigString.config);
             Locks.LOGGER.info("[LocksConfig] Created default {}.", GEN_CONFIG_FILE);
         } catch (IOException e) {
             Locks.LOGGER.error("[LocksConfig] Failed to write {}: {}", GEN_CONFIG_FILE, e.getMessage());
@@ -550,19 +300,20 @@ public final class LocksConfig {
         if (lootTableId != null) entry = lootTableEntries.get(lootTableId.toString());
         if (entry == null)
         {
-            Locks.LOGGER.warn("[LocksConfig] Unable to roll for {}, now attempting default.", lootTableId.toString());
+            //Locks.LOGGER.warn("[LocksConfig] Unable to roll for {}, now attempting default.", lootTableId.toString());
             entry = lootTableEntries.get("default");
         }
         if (entry == null)
         {
-            Locks.LOGGER.warn("[LocksConfig] Unable to roll for default as well. returning null???");
+            Locks.LOGGER.warn("[LocksConfig] Unable to roll for default as well. returning no lock. \n Might be due to: \nMay have failed to load (A log has been printed for this)\nIF locks-generation.toml IS EMPTY, PLEASE DELETE FILE.");
             return null;
         }
 
-        Locks.LOGGER.info("[LocksConfig] rollLock id='{}' entry={} genChance={} weightTotal={}",
+        /*Locks.LOGGER.info("[LocksConfig] rollLock id='{}' entry={} genChance={} weightTotal={}",
                 lootTableId, entry != null ? "found" : "null(using default)",
                 entry != null ? entry.genChance : -1,
-                entry != null ? entry.weightTotal : -1);
+                entry != null ? entry.weightTotal : -1);*/
+
         return entry.roll(rng);
     }
 
@@ -578,14 +329,14 @@ public final class LocksConfig {
         def.resolveIfNeeded();
         if (def.weightTotal == 0 || def.weightedLocks.isEmpty()) return null;
         Map.Entry<Integer, Item> found = def.weightedLocks.ceilingEntry(rng.nextInt(def.weightTotal) + 1);
-        if (found == null) return null;
+        if (found == null) return null; //EnchantmentHelper.enchantItem(rng, stack, 5 + rng.nextInt(30), false)
         ItemStack stack = new ItemStack(found.getValue());
-        return LocksUtil.chance(rng, def.enchChance)
-                ? EnchantmentHelper.enchantItem(rng, stack, 5 + rng.nextInt(30), false)
+        return LocksUtil.chance(rng, 1f)
+                ? enchantLock(stack, rng)
                 : stack;
     }
 
-    public static boolean canGen(RandomSource rng, Block block) {
+    /*public static boolean canGen(RandomSource rng, Block block) {
         if (lootTableEntries == null) init();
         LootTableEntry def = lootTableEntries.get("default");
         double genChance = def != null ? def.genChance : 0.85;
@@ -595,7 +346,19 @@ public final class LocksConfig {
     public static boolean canEnchant(RandomSource rng) {
         if (lootTableEntries == null) init();
         LootTableEntry def = lootTableEntries.get("default");
-        double enchChance = def != null ? def.enchChance : 0.40;
+        double enchChance = 1f;//def != null ? def.enchChance : 0.40;
         return LocksUtil.chance(rng, enchChance);
+    }*/
+
+    public static ItemStack enchantLock(ItemStack stack, RandomSource rng)
+    {
+        List<Enchantment> available = LocksConfig.getLockEnchantments();
+        if (!available.isEmpty()) {
+            Enchantment ench = available.get(rng.nextInt(available.size()));
+            int level = 1 + rng.nextInt(ench.getMaxLevel());
+            stack.enchant(ench, level);
+        }
+
+        return stack;
     }
 }

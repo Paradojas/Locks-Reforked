@@ -39,11 +39,11 @@ public final class LocksItems {
             KEY_RING = add("key_ring", () -> new KeyRingItem(2, new Item.Properties())),
             WOOD_LOCK_PICK = add("wood_lock_pick", () -> new LockPickItem(0.05f, new Item.Properties())),
             COPPER_LOCK_PICK = add("copper_lock_pick", () -> new LockPickItem(0.25f, new Item.Properties())),
-            IRON_LOCK_PICK = add("iron_lock_pick", () -> new LockPickItem(0.35f, new Item.Properties())),
-            STEEL_LOCK_PICK = add("steel_lock_pick", () -> new LockPickItem(0.7f, new Item.Properties())),
-            GOLD_LOCK_PICK = add("gold_lock_pick", () -> new LockPickItem(0.25f, new Item.Properties())),
-            DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.85f, new Item.Properties())),
-            NETHERITE_LOCK_PICK = add("netherite_lock_pick", () -> new LockPickItem(0.9f, new Item.Properties().fireResistant()));
+            IRON_LOCK_PICK = add("iron_lock_pick", () -> new LockPickItem(0.5f, new Item.Properties())),
+            STEEL_LOCK_PICK = add("steel_lock_pick", () -> new LockPickItem(0.75f, new Item.Properties())),
+            GOLD_LOCK_PICK = add("gold_lock_pick", () -> new LockPickItem(0.37f, new Item.Properties())),
+            DIAMOND_LOCK_PICK = add("diamond_lock_pick", () -> new LockPickItem(0.9f, new Item.Properties())),
+            NETHERITE_LOCK_PICK = add("netherite_lock_pick", () -> new LockPickItem(0.97f, new Item.Properties().fireResistant()));
 
     public static void register()
     {
